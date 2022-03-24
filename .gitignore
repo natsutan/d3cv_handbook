@@ -1,0 +1,7 @@
+.idea/
+chap2/lsm/target/
+
+
+# Added by cargo
+
+/target
