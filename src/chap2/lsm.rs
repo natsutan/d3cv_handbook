@@ -7,8 +7,10 @@ pub struct PointImage {
 
 fn main() {
     let input_image_path = "data/chap2/mami1.png";
+    let input_ori_image_path = "data/chap2/mami1_ori.png";
+    let output_image_path = "result/chap2/mami1.png";
 
-    println!("Hello, world!");
+
 
     let img = image::open(input_image_path).unwrap();
     println!("dimensions {:?}", img.dimensions());
@@ -16,18 +18,33 @@ fn main() {
     let size = img.dimensions();
     let width = size.0;
     let height = size.1;
- /*   for y in 0..height-1 {
+
+    let mut feature_points = Vec::new();
+
+    for y in 0..height-1 {
         for x in 0..width-1 {
             //rgb 186 147 110
             let rgb = img.get_pixel(x, y);
-            let r_thresh:u8 = 150;
-            let g_thresh:u8 = 150;
-            let b_thresh:u8 = 150;
-            if rgb.0[0] > r_thresh && rgb.0[1] < g_thresh && rgb.0[2] < b_thresh {
-                println!("{:?}, {:?}", x, y);
+            let r_thresh:u8 = 170;
+            let g_thresh:u8 = 110;
+            let b_thresh:u8 = 110;
+            if (rgb[0] > r_thresh) && (rgb[1] < g_thresh) && (rgb[2] < b_thresh) {
+                feature_points.push(PointImage{x:x, y:y});
             }
         }
-    }*/
+    }
+    println!("points = {:?}", feature_points.len());
+
+    let img_work = image::open(input_ori_image_path).unwrap();
+
+    match img_work.save(output_image_path) {
+        Ok(_) => {
+            println!("save to {:?}", output_image_path);
+        }
+        Err(e) => {
+            println!("Error:{}", e);
+        }
+    }
 
 
 }
