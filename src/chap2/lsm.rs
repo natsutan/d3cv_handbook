@@ -1,9 +1,20 @@
-use image::{DynamicImage, GenericImageView};
+use image::{ImageBuffer, Rgb, RgbImage};
+use image::GenericImageView;
+use image::GenericImage;
+use image::DynamicImage;
+use image::imageops::invert;
+use imageproc::drawing;
+
+use imageproc::drawing::{Canvas, draw_filled_circle_mut};
 
 pub struct PointImage {
     pub x: u32,
     pub y: u32
 }
+
+//fn circle(img: &mut RgbImage) {
+//    draw_filled_circle_mut(img, (300, 300), 50, Rgb([0, 255, 0]));
+//}
 
 fn main() {
     let input_image_path = "data/chap2/mami1.png";
@@ -35,7 +46,18 @@ fn main() {
     }
     println!("points = {:?}", feature_points.len());
 
-    let img_work = image::open(input_ori_image_path).unwrap();
+    let mut img_work = image::open(input_ori_image_path).unwrap().to_rgb8();
+
+    let red  = image::Rgb([255,0,0]);
+
+    img_work.put_pixel(500, 500, red);
+
+
+    draw_filled_circle_mut(&mut img_work, (500, 500), 5, red);
+    //invert(&mut img_work);
+    //write_a_pixel(&mut img_work, Red);
+    //circle(&mut img_work);
+
 
     match img_work.save(output_image_path) {
         Ok(_) => {
