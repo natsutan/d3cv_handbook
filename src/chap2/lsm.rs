@@ -1,8 +1,7 @@
 use image::{ImageBuffer, Rgb, RgbImage};
-use image::GenericImageView;
+//use image::GenericImageView;
 use image::GenericImage;
 use image::DynamicImage;
-use image::imageops::invert;
 use imageproc::drawing;
 
 use imageproc::drawing::{Canvas, draw_filled_circle_mut};
@@ -46,18 +45,19 @@ fn main() {
     }
     println!("points = {:?}", feature_points.len());
 
+
+
     let mut img_work = image::open(input_ori_image_path).unwrap().to_rgb8();
 
-    let red  = image::Rgb([255,0,0]);
-
-    img_work.put_pixel(500, 500, red);
+    let red  = Rgb([255,0,0]);
 
 
-    draw_filled_circle_mut(&mut img_work, (500, 500), 5, red);
-    //invert(&mut img_work);
-    //write_a_pixel(&mut img_work, Red);
-    //circle(&mut img_work);
+    for p in feature_points {
+        let x:i32 = p.x.try_into().unwrap();
+        let y:i32 = p.y.try_into().unwrap();
 
+        draw_filled_circle_mut(&mut img_work, (x, y), 5, red);
+    }
 
     match img_work.save(output_image_path) {
         Ok(_) => {
