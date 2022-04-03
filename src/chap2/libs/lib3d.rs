@@ -1,9 +1,15 @@
-use image::{DynamicImage, GenericImage, GenericImageView, Rgb, RgbImage};
+use std::cmp;
+use image::{DynamicImage, GenericImageView, Rgb, RgbImage};
 use imageproc::drawing::draw_filled_circle_mut;
 
 pub struct PointImage {
     pub x: u32,
     pub y: u32
+}
+
+pub struct PointLogical {
+    pub x: f32,
+    pub y: f32
 }
 
 pub fn find_features(img: &DynamicImage) -> Vec<PointImage> {
@@ -44,4 +50,27 @@ pub fn plot_feature_point(img_bg: &mut RgbImage, points:Vec<PointImage> ,col: Rg
             println!("Error:{}", e);
         }
     }
+}
+
+pub fn get_f0(img: &DynamicImage) -> u32 {
+    let size = img.dimensions();
+    cmp::max(size.0, size.1)
+}
+
+pub fn im_to_log(src: &PointImage, f0: &u32) -> PointLogical {
+    
+    let x = (src.x - (f0 / 2)) as f32;
+    let y = (src.y - (f0 / 2)) as f32;
+    PointLogical{x, y}
+}
+
+pub fn log_to_im(src: &PointLogical, f0: &u32) -> PointImage {
+    let fi = *f0 as i32;
+    let xi = src.x as i32 + (fi / 2);
+    let yi = src.y as i32 + (fi / 2);
+
+    let xu :u32 = cmp::max(xi, 0) as u32;
+    let yu :u32 = cmp::max(yi, 0) as u32;
+
+    PointImage{x:xu, y:yu}
 }
