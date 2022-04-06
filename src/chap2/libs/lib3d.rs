@@ -58,9 +58,12 @@ pub fn get_f0(img: &DynamicImage) -> u32 {
 }
 
 pub fn im_to_log(src: &PointImage, f0: &u32) -> PointLogical {
-    
-    let x = (src.x - (f0 / 2)) as f32;
-    let y = (src.y - (f0 / 2)) as f32;
+    let fi = (f0 / 2) as i32;
+    let xi = src.x as i32;
+    let yi = src.y as i32;
+
+    let x = (xi - fi) as f32;
+    let y = (yi - fi) as f32;
     PointLogical{x, y}
 }
 
@@ -73,4 +76,18 @@ pub fn log_to_im(src: &PointLogical, f0: &u32) -> PointImage {
     let yu :u32 = cmp::max(yi, 0) as u32;
 
     PointImage{x:xu, y:yu}
+}
+
+pub fn eta_from_xyf(p:&PointLogical, f0: &u32) -> [f32;6] {
+    let mut eta = [0.0;6];
+    let f:f32 = *f0 as f32;
+
+    eta[0] = p.x * p.x;
+    eta[1] = 2.0 * p.x * p.y;
+    eta[2] = p.y * p.y;
+    eta[3] = 2.0 * f * p.x;
+    eta[4] = 2.0 * f * p.y;
+    eta[5] = f * f;
+
+    eta
 }
