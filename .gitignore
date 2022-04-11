@@ -1,8 +1,4 @@
 .idea/
-chap2/lsm/target/
 result/
 
 
-# Added by cargo
-
-/target
