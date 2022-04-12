@@ -2,6 +2,26 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 
+class ConvInfo:
+    def __init__(self, img):
+        w, h = img.size
+        self.f0 = min(w, h)
+        self.x_offset = int(w/2)
+        self.y_offset = int(h/2)
+
+    def pixel_to_logical(self, x, y):
+        return x - self.x_offset, y - self.y_offset
+
+    def logical_to_pixel(self, x, y):
+        px = int(x + self.x_offset)
+        py = int(y + self.y_offset)
+        return px, py
+
+    def eta(self, x, y):
+        f0 = self.f0
+        return np.array([x * x, 2 * x * y, y * y, 2 * f0 * x, 2 * f0 * y, f0 * f0])
+
+
 def get_featurepoint_list(image):
     l = []
     width, height = image.size
@@ -31,13 +51,36 @@ def plot_feature_points(image: Image, fplist, filename):
     im_work.save(filename)
     print("save to ", filename)
 
+
+def convert_fplist_to_logical(conv:ConvInfo, fplist):
+    result = []
+    for x, y in fplist:
+        logical_xy = conv.pixel_to_logical(x, y)
+        result.append(logical_xy)
+
+    return result
+
+
+def matrixM(conv:ConvInfo, plist):
+    N = len(plist)
+    M = np.zeros((6, 6))
+    for x, y in plist:
+        eta = conv.eta(x, y)
+        M = M + np.dot(eta, eta.T)
+
+    M = M / N
+
+    return M
+
 def main():
     im = Image.open("../data/chap2/mami1.png")
     im_fplist = get_featurepoint_list(im)
     print("feature points:", len(im_fplist))
-    plot_feature_points(im, im_fplist, '../result/chap2/fp_mami1.png')
-
-
+    conv_info = ConvInfo(im)
+    print("f0 = ", conv_info.f0)
+    log_fplist = convert_fplist_to_logical(conv_info, im_fplist)
+    mat_M = matrixM(conv_info, log_fplist)
+    print(mat_M)
 
 if __name__ == '__main__':
     main()
