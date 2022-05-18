@@ -1,4 +1,5 @@
 import math
+import os
 import numpy as np
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
@@ -6,7 +7,8 @@ import matplotlib.pyplot as plt
 class ConvInfo:
     def __init__(self, img):
         w, h = img.size
-        self.f0 = min(w, h)
+#        self.f0 = min(w, h)
+        self.f0 = 1.0
         self.x_offset = int(w/2)
         self.y_offset = int(h/2)
 
@@ -54,6 +56,25 @@ def plot_feature_points(image: Image, fplist, filename):
     im_work.save(filename)
     print("save to ", filename)
 
+def plot_result(image: Image, fplist, elist, filename):
+    im_work = image.copy()
+    draw = ImageDraw.Draw(im_work)
+
+    #eclipse
+    size = 2
+    for x, y in elist:
+        pos = (x - size, y - size, x + size, y + size)
+        draw.ellipse(pos, fill=(125, 125, 255))
+
+    # feature point
+    size = 2
+    for x, y in fplist:
+        pos = (x-size, y-size, x+size, y+size)
+        draw.ellipse(pos, fill=(255, 0, 0))
+
+    im_work.save(filename)
+    print("save to ", filename)
+
 
 def convert_fplist_to_logical(conv:ConvInfo, fplist):
     result = []
@@ -63,10 +84,13 @@ def convert_fplist_to_logical(conv:ConvInfo, fplist):
 
     return result
 
+
 def convert_logical_to_image(conv:ConvInfo, llist):
     result = []
     for xy in llist:
-        im_xy = conv.logical_to_pixel(xy[0], xy[1])
+        x = xy[0, 0]
+        y = xy[0, 1]
+        im_xy = conv.logical_to_pixel(x, y)
         result.append(im_xy)
 
     return result
@@ -94,8 +118,9 @@ def infer_theta(M):
     print("w ", w)
     print("v ", v)
 
-    theta = v[:,0]
+    theta = v[:,5]
     print('theta ', theta)
+    print("norm ", np.linalg.norm(theta))
     return theta
 
 
@@ -152,7 +177,7 @@ def getEllipseProperty(A, B, C, D, E, F):
 
 # Thanks to Daily Tech Blog
 # https://daily-tech.hatenablog.com/entry/2018/04/13/084734
-def generateVecFromEllipse(axis, center, T, rng=[0, 2 * math.pi], num=101):
+def generateVecFromEllipse(axis, center, T, rng=[0, 2 * math.pi], num=601):
     t = np.linspace(rng[0], rng[1], num)
     t = np.reshape(t, (t.shape[0], 1))
 
@@ -179,11 +204,13 @@ def plotData(dataEst):
     plt.show()
 
 def main():
-    im = Image.open("../data/chap2/mami2.png")
+    file_base = "mami1"
+
+    im = Image.open(os.path.join("../data/chap2/", file_base +".png"))
     im_fplist = get_featurepoint_list(im)
     print("feature points:", len(im_fplist))
 
-    plot_feature_points(im, im_fplist, "../result/chap2/fp_mami2_.png")
+    plot_feature_points(im, im_fplist, os.path.join("../result/chap2/", "fp_" + file_base + ".png"))
 
     conv_info = ConvInfo(im)
     print("f0 = ", conv_info.f0)
@@ -199,12 +226,10 @@ def main():
     F = conv_info.f0 * conv_info.f0 * theta[5]
 
     valid, axis, centerEst, Rest = getEllipseProperty(A, B, C, D, E, F)
-
     dataEst = generateVecFromEllipse(axis, centerEst, Rest)
-    data_im = convert_logical_to_image(conv_info, dataEst)
-    plotData(data_im)
+    im_ellipse = convert_logical_to_image(conv_info, dataEst)
 
-
+    plot_result(im, im_fplist, im_ellipse, os.path.join("../result/chap2/", "lsm_" + file_base + ".png"))
 
 if __name__ == '__main__':
     main()
