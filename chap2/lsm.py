@@ -4,10 +4,11 @@ import numpy as np
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 
+
 class ConvInfo:
     def __init__(self, img):
         w, h = img.size
-#        self.f0 = min(w, h)
+        #self.f0 = min(w, h)
         self.f0 = 1.0
         self.x_offset = int(w/2)
         self.y_offset = int(h/2)
@@ -27,7 +28,7 @@ class ConvInfo:
         return xi
 
 
-def get_featurepoint_list(image):
+def get_feature_point_list(image):
     l = []
     width, height = image.size
     print(width, height)
@@ -38,7 +39,11 @@ def get_featurepoint_list(image):
 
     for y in range(height):
         for x in range(width):
-            r, g, b = image.getpixel((x, y))
+            cols = image.getpixel((x, y))
+            r = cols[0]
+            g = cols[1]
+            b = cols[2]
+
             if r > r_thresh and g < g_thresh and b < b_thresh:
                 l.append((x, y))
 
@@ -96,7 +101,6 @@ def convert_logical_to_image(conv:ConvInfo, llist):
     return result
 
 
-
 def matrixM(conv:ConvInfo, plist):
     N = len(plist)
     M = np.zeros((6, 6))
@@ -113,7 +117,14 @@ def matrixM(conv:ConvInfo, plist):
 
     return M
 
-def infer_theta(M):
+
+def lsm_infer_theta(M):
+    """
+    LSMを使ってθを推論する。
+
+    :param M: 6x6行列M
+    :return: 推論されたθ
+    """
     w, v = np.linalg.eig(M)
     print("w ", w)
     print("v ", v)
@@ -203,11 +214,12 @@ def plotData(dataEst):
     ax.plot(dataEst[:, 0], dataEst[:, 1])
     plt.show()
 
+
 def main():
-    file_base = "mami1"
+    file_base = "mami2_noise"
 
     im = Image.open(os.path.join("../data/chap2/", file_base +".png"))
-    im_fplist = get_featurepoint_list(im)
+    im_fplist = get_feature_point_list(im)
     print("feature points:", len(im_fplist))
 
     plot_feature_points(im, im_fplist, os.path.join("../result/chap2/", "fp_" + file_base + ".png"))
@@ -216,7 +228,7 @@ def main():
     print("f0 = ", conv_info.f0)
     log_fplist = convert_fplist_to_logical(conv_info, im_fplist)
     mat_M = matrixM(conv_info, log_fplist)
-    theta = infer_theta(mat_M)
+    theta = lsm_infer_theta(mat_M)
 
     A = theta[0]
     B = 2 * theta[1]
@@ -230,6 +242,7 @@ def main():
     im_ellipse = convert_logical_to_image(conv_info, dataEst)
 
     plot_result(im, im_fplist, im_ellipse, os.path.join("../result/chap2/", "lsm_" + file_base + ".png"))
+
 
 if __name__ == '__main__':
     main()
